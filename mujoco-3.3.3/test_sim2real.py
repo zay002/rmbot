@@ -69,14 +69,21 @@ class Args:
     env: EnvMode = EnvMode.LIBERO
     norm: Optional[float] = None
     average_actions: bool = False
+    # Set to True to invert the order of the first 6 action dimensions.
+    i: bool = False
+
 
 # --- Helper function for mapping values ---
 def map_value(value: float, from_min: float, from_max: float, to_min: float, to_max: float, inverted: bool = False) -> float:
     """Linearly maps a value from one range to another, with an option to invert the output."""
     if inverted:
         to_min, to_max = to_max, to_min
+    # Clamp the value to the source range
     value = max(from_min, min(value, from_max))
     from_span = from_max - from_min
+    # Avoid division by zero
+    if from_span == 0:
+        return to_min
     to_span = to_max - to_min
     scaled_value = (value - from_min) / from_span
     return to_min + (scaled_value * to_span)
@@ -110,14 +117,12 @@ def disconnect_robot(robot: 'RoboticArm'):
     else:
         logger.error("Failed to disconnect from the real robot.")
 
-## NEW: Function to reset the robot to a safe position on exit.
 def reset_robot_position(robot: 'RoboticArm'):
     """Moves the robot to a zero-joint state and closes the gripper."""
     if not robot:
         return
     logger.info("Moving robot to safe reset position [0,0,0,0,0,0]...")
-    # Use a safe, moderate speed for reset
-    movej(robot, [0, 0, 0, 0, 0, 0], v=15) 
+    movej(robot, [0, 0, 0, 0, 0, 0], v=15)
     logger.info("Closing gripper...")
     control_gripper_open(robot, 0) # 0 corresponds to the closed state
     logger.info("Robot has been reset.")
@@ -195,7 +200,7 @@ def get_mujoco_observation(model: mujoco.MjModel, data: mujoco.MjData, renderer:
         main_image = renderer.render()
         renderer.update_scene(data, camera="flange_cam")
         wrist_image = renderer.render()
-        
+
         # Assemble dictionary
         return {
             "observation/state": state,
@@ -212,7 +217,7 @@ def get_mujoco_observation(model: mujoco.MjModel, data: mujoco.MjData, renderer:
 
 def main(args: Args) -> None:
     """Main function to run the simulation and optionally control the real robot."""
-    
+
     # --- 1. Load MuJoCo Model ---
     try:
         model = mujoco.MjModel.from_xml_path(args.model_path)
@@ -221,15 +226,24 @@ def main(args: Args) -> None:
     except Exception as e:
         logging.error(f"Fatal: Failed to load MuJoCo model from '{args.model_path}'. Error: {e}")
         return
-        
+
     actuator_info = get_actuator_info(model)
     if model.nu < 7:
         logging.error(f"Model requires at least 7 actuators (6 arm, 1 gripper), but found {model.nu}.")
         return
-        
+
     ARM_ACTUATOR_INDICES = range(6)
     GRIPPER_ACTUATOR_INDEX = 6
-    sim_gripper_min, sim_gripper_max = actuator_info[GRIPPER_ACTUATOR_INDEX]["range"]
+    
+    # >>> MODIFIED CODE START <<<
+    # Get the original gripper range from the MuJoCo model file.
+    _sim_gripper_min_from_model, _sim_gripper_max_from_model = actuator_info[GRIPPER_ACTUATOR_INDEX]["range"]
+    logger.info(f"Gripper range from model file: [{_sim_gripper_min_from_model:.2f}, {_sim_gripper_max_from_model:.2f}]")
+    
+    # Override the simulation gripper range to the specified 0-255.
+    sim_gripper_min, sim_gripper_max = 0.0, 255.0
+    logger.info(f"Overriding simulation gripper control range to: [{sim_gripper_min:.2f}, {sim_gripper_max:.2f}]")
+    # >>> MODIFIED CODE END <<<
 
     # --- 2. (Optional) Connect to Real Robot ---
     robot_arm = None
@@ -274,7 +288,7 @@ def main(args: Args) -> None:
             else:
                 logging.info("--> CONTROLLING SIMULATION ONLY <--")
             logging.info("Press ESC in the viewer window to quit.")
-            
+
             while viewer.is_running():
                 # a. Get observation from simulation
                 current_obs = obs_fn()
@@ -285,14 +299,14 @@ def main(args: Args) -> None:
                 # b. Get action from the policy server
                 response = policy.infer(current_obs)
                 action_sequence = response.get('actions')
-                
+
                 # c. Validate the received action
                 if not isinstance(action_sequence, (list, np.ndarray)) or len(action_sequence) == 0 or not all(len(sub) == 7 for sub in action_sequence):
                     logging.warning(f"Invalid or empty 'actions' received, skipping step: {action_sequence}")
                     mujoco.mj_step(model, data)
                     viewer.sync()
                     continue
-                    
+
                 # d. Process action sequence (e.g., averaging)
                 processed_sequence = action_sequence
                 if args.average_actions:
@@ -305,17 +319,23 @@ def main(args: Args) -> None:
 
                     # i. Calculate joint angles
                     joint_angles = list(sub_action[:6])
+
+                    # Invert the joint angles if the -i flag is set
+                    if args.i:
+                        logging.info("  - [Action] Inverting joint order due to -i flag.")
+                        joint_angles.reverse()
+
                     scaled_joint_angles = [angle * 15 for angle in joint_angles]
                     norm_value = 0.0
                     if args.norm is not None:
                         norm_value = min(args.norm, 45.0)
                     final_joint_angles = [angle + norm_value for angle in scaled_joint_angles]
-                    
-                    ## MODIFIED: Reversed gripper mapping logic
+
                     # The policy's gripper action is now treated as the primary value for the SIMULATION
                     raw_gripper_action = sub_action[6]
-                    # Clamp the action to the valid simulation control range
-                    sim_gripper_ctrl_value = max(sim_gripper_min, min(raw_gripper_action, sim_gripper_max))
+                    # Clamp the action to the valid simulation control range (now 0-100)
+                    sim_gripper_ctrl_value = max(0.0, min(raw_gripper_action, 1.0))
+                    sim_gripper_ctrl_value = sim_gripper_ctrl_value * 255
 
                     # ii. Send commands to Simulation
                     movej_mujoco(data, final_joint_angles, ARM_ACTUATOR_INDICES)
@@ -323,14 +343,14 @@ def main(args: Args) -> None:
 
                     # iii. Send commands to Real Robot (if enabled)
                     if args.run_robot and robot_arm:
-                        # Map the SIMULATION control value to the REAL robot's 0-100 range
+                        # Map the SIMULATION control value (0-255) to the REAL robot's 0-100 range
                         real_gripper_amplitude = map_value(
                             sim_gripper_ctrl_value,
-                            from_min=sim_gripper_min, from_max=sim_gripper_max,
-                            to_min=0, to_max=100,
-                            inverted=False # Set to True if sim gripper is reversed relative to real one
+                            from_min=sim_gripper_min, from_max=sim_gripper_max, # from [0, 255]
+                            to_min=0, to_max=100,                               # to [0, 100]
+                            inverted=False
                         )
-                        
+
                         movej(robot_arm, final_joint_angles, v=args.robot_speed)
                         control_gripper_open(robot_arm, real_gripper_amplitude)
 
@@ -339,11 +359,10 @@ def main(args: Args) -> None:
                         if not viewer.is_running(): break
                         mujoco.mj_step(model, data)
                         viewer.sync()
-                        
+
     finally:
         # --- 6. Cleanup ---
         logging.info("Program exiting. Cleaning up resources.")
-        ## NEW: On exit, move the real robot to a safe position before disconnecting.
         if args.run_robot and robot_arm:
             reset_robot_position(robot_arm)
             disconnect_robot(robot_arm)

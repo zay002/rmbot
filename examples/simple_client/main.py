@@ -7,7 +7,7 @@ import sys
 import os
 
 import numpy as np
-from openpi_client import websocket_client_policy as _websocket_client_policy 
+from openpi_client import websocket_client_policy as _websocket_client_policy
 import polars as pl
 import rich
 import rich.console
@@ -23,10 +23,10 @@ try:
     # 我们向上查找两级目录来定位项目根目录
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
     api_path = os.path.join(project_root, "RM_API2", "Python")
-    
+
     # 将API路径添加到 sys.path 的最前面，以优先使用
     sys.path.insert(0, api_path)
-    
+
     from Robotic_Arm.rm_robot_interface import *
 except ImportError:
     print("错误：无法导入 'rm_robot_interface'。")
@@ -140,6 +140,10 @@ class Args:
     run_robot: bool = False
     # 设置为True以合并每个step中的子动作序列为单个平均动作。
     average_actions: bool = False
+    # >>> 新增代码开始 <<<
+    # 设置为True以颠倒前六个关节维度的顺序。
+    i: bool = False
+    # >>> 新增代码结束 <<<
 
 
 class TimingRecorder:
@@ -229,10 +233,10 @@ def main(args: Args) -> None:
             console.print(f"\n[bold magenta]实时收到的 Response (步骤 {i + 1}):[/bold magenta]")
             console.print(response)
 
-            action_sequence = response.get('actions') 
-            
+            action_sequence = response.get('actions')
+
             if isinstance(action_sequence, (list, np.ndarray)) and len(action_sequence) > 0 and all(len(sub) == 7 for sub in action_sequence):
-                
+
                 processed_sequence = action_sequence
                 # 如果设置了 average_actions 参数，则计算平均值
                 if args.average_actions:
@@ -241,19 +245,26 @@ def main(args: Args) -> None:
                     processed_sequence = [averaged_action]  # 将单个平均动作视为一个长度为1的序列
 
                 console.print(f"[cyan]开始执行包含 {len(processed_sequence)} 个子动作的序列...[/cyan]")
-                
+
                 for sub_action in processed_sequence:
                     # a. 处理并执行关节运动
                     joint_angles = list(sub_action[:6])
                     
+                    # >>> 新增代码开始 <<<
+                    # 如果 -i 参数被设置，则颠倒前六个维度的顺序
+                    if args.i:
+                        console.print(f"  - [purple]Inverting:[/purple] 启用 -i 参数，颠倒前六个关节维度。")
+                        joint_angles.reverse() # In-place reverse
+                    # >>> 新增代码结束 <<<
+                    
                     # 新逻辑: 先将数据扩大15倍
                     scaled_joint_angles = [angle * 15 for angle in joint_angles]
-                    
+
                     norm_value = 0.0
                     if args.norm is not None:
                         norm_value = min(args.norm, 45.0)
                         console.print(f"  - [blue]Normalization:[/blue] 应用归一化值: {norm_value:.2f}")
-                    
+
                     # 然后再加上 norm 值
                     final_joint_angles = [angle + norm_value for angle in scaled_joint_angles]
 
@@ -265,8 +276,8 @@ def main(args: Args) -> None:
                     # b. 处理并执行夹爪控制
                     gripper_value = sub_action[6]
                     gripper_amplitude = abs(gripper_value)
-                    gripper_amplitude = max(0, min(100, gripper_amplitude))
-                    
+                    gripper_amplitude = 100 * max(0, min(100, gripper_amplitude))
+
                     console.print(f"  - [green]Gripper (目标):[/green] 幅度: {gripper_amplitude:.2f}")
                     # 只有在连接了机器人时才执行
                     if args.run_robot and robot_arm:
@@ -279,7 +290,7 @@ def main(args: Args) -> None:
                 timing_recorder.record(f"server_{key}", value)
             for key, value in response.get("policy_timing", {}).items():
                 timing_recorder.record(f"policy_{key}", value)
-        
+
         # --- 5. 循环结束后，打印统计数据 ---
         timing_recorder.print_all_stats()
         if args.timing_file is not None:

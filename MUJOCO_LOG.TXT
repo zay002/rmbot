@@ -1,3 +1,6 @@
 Tue Jul  1 02:58:29 2025
 WARNING: mju_openResource: unknown file 'ur5_grasp_assets/scenes/scene_test.xml'
 
+Tue Jul  1 08:44:55 2025
+ERROR: mjv_updateSceneState: m->nu changed
+

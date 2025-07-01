@@ -85,7 +85,8 @@ def control_gripper_mujoco(data: mujoco.MjData, gripper_actuator_index: int, gri
     """
     min_ctrl, max_ctrl = gripper_range
     # Linearly interpolate the amplitude (0-100) to the actuator's control range
-    ctrl_value = min_ctrl + (amplitude / 100.0) * (max_ctrl - min_ctrl)
+    #ctrl_value = min_ctrl + amplitude  * (max_ctrl - min_ctrl)
+    ctrl_value = np.random.randint(255)
     
     data.ctrl[gripper_actuator_index] = ctrl_value
     logging.info(f"  - [Sim] Gripper Sent: Amplitude {amplitude:.2f} -> Ctrl Value {ctrl_value:.3f}")
