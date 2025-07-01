@@ -1,6 +1,6 @@
 <mujoco model="scene">
 
-    <include file="../universal_robots_ur5e/ur5e.xml" />
+    <include file="../realman/model/model/fishbot_base.xml" />
     <include file="../robotiq_2f85/2f85.xml" />
 
     <compiler angle="radian" autolimits="true" />

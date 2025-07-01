@@ -1,0 +1,59 @@
+<mujoco>
+  <option timestep="0.001">
+    <gravity>0 0 0</gravity>  <!-- 禁用重力 -->
+  </option>
+
+  <worldbody>
+    <!-- 基座1和左机械臂 -->
+    <body name="base_left" pos="-0.5 0 0">
+      <joint type="free"/>
+      <geom type="box" size="0.1 0.2 0.1" pos="0 0 0.1" rgba="1 0 0 1"/>
+      
+      <!-- 左臂连杆结构 -->
+      <body name="link1_left">
+        <joint name="joint1_left" type="hinge" axis="0 0 1" range="-180 180"/>
+        <geom type="cylinder" size="0.05" fromto="0 0 0 0.3 0 0" rgba="0.8 0.8 0.8 1"/>
+        
+        <body name="link2_left">
+          <joint name="joint2_left" type="hinge" axis="0 1 0" range="-90 90"/>
+          <geom type="cylinder" size="0.05" fromto="0 0 0 0 0 0.3" rgba="0.8 0.8 0.8 1"/>
+          
+          <body name="ee_left">
+            <geom type="sphere" size="0.06" rgba="1 0 0 1"/>
+          </body>
+        </body>
+      </body>
+    </body>
+
+    <!-- 基座2和右机械臂 -->
+    <body name="base_right" pos="0.5 0 0">
+      <geom type="box" size="0.1 0.2 0.1" pos="0 0 0.1" rgba="0 0 1 1"/>
+      
+      <body name="link1_right">
+        <joint name="joint1_right" type="hinge" axis="0 0 1" range="-180 180"/>
+        <geom type="cylinder" size="0.05" fromto="0 0 0 -0.3 0 0" rgba="0.8 0.8 0.8 1"/>
+        
+        <body name="link2_right">
+          <joint name="joint2_right" type="hinge" axis="0 1 0" range="-90 90"/>
+          <geom type="cylinder" size="0.05" fromto="0 0 0 0 0 0.3" rgba="0.8 0.8 0.8 1"/>
+          
+          <body name="ee_right">
+            <geom type="sphere" size="0.06" rgba="0 0 1 1"/>
+          </body>
+        </body>
+      </body>
+    </body>
+
+    <!-- 目标物体 -->
+    <body name="target" pos="0 0 0.5">
+      <geom type="box" size="0.1 0.1 0.1" rgba="0 1 0 0.5"/>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <motor joint="joint1_left" gear="200"/>
+    <motor joint="joint2_left" gear="200"/>
+    <motor joint="joint1_right" gear="200"/>
+    <motor joint="joint2_right" gear="200"/>
+  </actuator>
+</mujoco>

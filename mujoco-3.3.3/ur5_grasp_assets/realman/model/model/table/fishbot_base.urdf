@@ -1,0 +1,989 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot
+  name="rm_65_description">
+    <link
+    name="base_fake"/>
+     <joint
+    name="joint000"
+    type="fixed">
+    <origin
+      xyz="0 0.07 -0.705"
+      rpy="0 0 1.57" />
+    <parent
+      link="base_fake" />
+    <child
+      link="base" />
+    <axis
+      xyz="0 0 1" />
+  </joint>
+
+  <link
+    name="base">
+    <inertial>
+      <origin
+        xyz="-0.000433277303987328 -3.54664423471128E-05 0.0599427668933796"
+        rpy="0 0 0" />
+      <mass
+        value="0.841070778135659" />
+      <inertia
+        ixx="0.0017261110801622"
+        ixy="2.52746264980217E-06"
+        ixz="-3.67690303614961E-05"
+        iyy="0.00170987405835604"
+        iyz="1.67996364994424E-06"
+        izz="0.000904023422915791" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="-0.5 -0.48 0.61"
+        rpy="1.57 0 1.57" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/base.STL"
+          scale="0.01 0.01 0.01" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="-0.15 -0.48 0.61"
+        rpy="1.57 0 1.57" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/base_link.STL" 
+          scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint0"
+    type="fixed">
+    <origin
+      xyz="-0.07 -0.3 0.705"
+      rpy="0 0 0" />
+    <parent
+      link="base" />
+    <child
+      link="base_link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.1"
+      upper="3.1"
+      effort="60"
+      velocity="3.14" />
+  </joint>
+    <joint
+    name="joint0_1"
+    type="fixed">
+    <origin
+      xyz="-0.07 0.3 0.705"
+      rpy="0 0 0" />
+    <parent
+      link="base" />
+    <child
+      link="base_link_1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.1"
+      upper="3.1"
+      effort="60"
+      velocity="3.14" />
+  </joint>
+  <!-- arm1 begin ******************************************************************************************************* -->
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-0.000433277303987328 -3.54664423471128E-05 0.0599427668933796"
+        rpy="0 0 0" />
+      <mass
+        value="0.841070778135659" />
+      <inertia
+        ixx="0.0017261110801622"
+        ixy="2.52746264980217E-06"
+        ixz="-3.67690303614961E-05"
+        iyy="0.00170987405835604"
+        iyz="1.67996364994424E-06"
+        izz="0.000904023422915791" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="Link1">
+    <inertial>
+      <origin
+        xyz="1.2226305431569E-08 0.0211079974844683 -0.0251854220842269"
+        rpy="0 0 0" />
+      <mass
+        value="0.593563443690403" />
+      <inertia
+        ixx="0.00126614120341847"
+        ixy="-1.294980943835E-08"
+        ixz="-9.80120923066996E-09"
+        iyy="0.00118168178300364"
+        iyz="-0.00021121727444415"
+        izz="0.00056135241627747" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint1"
+    type="revolute">
+    <origin
+      xyz="0 0 0.2405"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="Link1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.1"
+      upper="3.1"
+      effort="60"
+      velocity="3.14" />
+  </joint>
+  <link
+    name="Link2">
+    <inertial>
+      <origin
+        xyz="0.152256463426163 4.75383656106654E-07 -0.00620260383607792"
+        rpy="0 0 0" />
+      <mass
+        value="0.864175046869043" />
+      <inertia
+        ixx="0.00089150298478414"
+        ixy="-2.23268489334765E-08"
+        ixz="0.00156246461035015"
+        iyy="0.00733754343083901"
+        iyz="6.28110889329165E-09"
+        izz="0.00697869103915473" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint2"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="1.5708 -1.5708 0" />
+    <parent
+      link="Link1" />
+    <child
+      link="Link2" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-2.268"
+      upper="2.268"
+      effort="60"
+      velocity="3.14" />
+  </joint>
+  <link
+    name="Link3">
+    <inertial>
+      <origin
+        xyz="5.05312670989961E-06 -0.0595925663694732 0.010569069212336"
+        rpy="0 0 0" />
+      <mass
+        value="0.289633681624654" />
+      <inertia
+        ixx="0.00063737100450158"
+        ixy="-7.05261293649751E-08"
+        ixz="-3.86643272239426E-08"
+        iyy="0.00015648388095025"
+        iyz="-0.00014461035994916"
+        izz="0.000614178164773085" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link3.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint3"
+    type="revolute">
+    <origin
+      xyz="0.256 0 0"
+      rpy="0 0 1.5708" />
+    <parent
+      link="Link2" />
+    <child
+      link="Link3" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-2.355"
+      upper="2.355"
+      effort="30"
+      velocity="3.92" />
+  </joint>
+  <link
+    name="Link4">
+    <inertial>
+      <origin
+        xyz="1.15516617405898E-06 -0.0180424468598241 -0.0215394748352687"
+        rpy="0 0 0" />
+      <mass
+        value="0.239419768320061" />
+      <inertia
+        ixx="0.000285938919722783"
+        ixy="3.07101359163101E-09"
+        ixz="-2.21994118981953E-09"
+        iyy="0.000262727540304212"
+        iyz="4.4236583260078E-05"
+        izz="0.000119888082791859" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link4.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link4.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint4"
+    type="revolute">
+    <origin
+      xyz="0 -0.21 0"
+      rpy="1.5708 0 0" />
+    <parent
+      link="Link3" />
+    <child
+      link="Link4" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.1"
+      upper="3.1"
+      effort="10"
+      velocity="3.92" />
+  </joint>
+  <link
+    name="Link5">
+    <inertial>
+      <origin
+        xyz="3.19794786262152E-06 -0.0593808368101458 0.00736804250989326"
+        rpy="0 0 0" />
+      <mass
+        value="0.218799761431678" />
+      <inertia
+        ixx="0.000350540363914072"
+        ixy="-3.41781619975602E-08"
+        ixz="-1.77056457224373E-08"
+        iyy="0.000104927867487581"
+        iyz="-7.82431228461971E-05"
+        izz="0.000334482418423629" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link5.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link5.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint5"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="-1.5708 0 0" />
+    <parent
+      link="Link4" />
+    <child
+      link="Link5" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-2.233"
+      upper="2.233"
+      effort="10"
+      velocity="3.92" />
+  </joint>
+  <link
+    name="Link6">
+    <inertial>
+      <origin
+        xyz="0.000714234511756999 -0.000396718732824521 -0.0126723660946126"
+        rpy="0 0 0" />
+      <mass
+        value="0.0649018034311231" />
+      <inertia
+        ixx="2.02766547502765E-05"
+        ixy="-1.32505200276849E-06"
+        ixz="-2.5845091522508E-08"
+        iyy="1.87986725225022E-05"
+        iyz="3.39471452125439E-09"
+        izz="3.17885459163081E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link6.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link6.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint6"
+    type="revolute">
+    <origin
+      xyz="0 -0.144 0"
+      rpy="1.5708 0 0" />
+    <parent
+      link="Link5" />
+    <child
+      link="Link6" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-6.28"
+      upper="6.28"
+      effort="10"
+      velocity="3.92" />
+  </joint>
+  <!-- arm1 end ******************************************************************************************************* -->
+
+
+
+
+<!-- arm2 begin ******************************************************************************************************* -->
+  <link
+    name="base_link_1">
+    <inertial>
+      <origin
+        xyz="-0.000433277303987328 -3.54664423471128E-05 0.0599427668933796"
+        rpy="0 0 0" />
+      <mass
+        value="0.841070778135659" />
+      <inertia
+        ixx="0.0017261110801622"
+        ixy="2.52746264980217E-06"
+        ixz="-3.67690303614961E-05"
+        iyy="0.00170987405835604"
+        iyz="1.67996364994424E-06"
+        izz="0.000904023422915791" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="Link1_1">
+    <inertial>
+      <origin
+        xyz="1.2226305431569E-08 0.0211079974844683 -0.0251854220842269"
+        rpy="0 0 0" />
+      <mass
+        value="0.593563443690403" />
+      <inertia
+        ixx="0.00126614120341847"
+        ixy="-1.294980943835E-08"
+        ixz="-9.80120923066996E-09"
+        iyy="0.00118168178300364"
+        iyz="-0.00021121727444415"
+        izz="0.00056135241627747" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint1_1"
+    type="revolute">
+    <origin
+      xyz="0 0 0.2405"
+      rpy="0 0 0" />
+    <parent
+      link="base_link_1" />
+    <child
+      link="Link1_1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.1"
+      upper="3.1"
+      effort="60"
+      velocity="3.14" />
+  </joint>
+  <link
+    name="Link2_1">
+    <inertial>
+      <origin
+        xyz="0.152256463426163 4.75383656106654E-07 -0.00620260383607792"
+        rpy="0 0 0" />
+      <mass
+        value="0.864175046869043" />
+      <inertia
+        ixx="0.00089150298478414"
+        ixy="-2.23268489334765E-08"
+        ixz="0.00156246461035015"
+        iyy="0.00733754343083901"
+        iyz="6.28110889329165E-09"
+        izz="0.00697869103915473" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint2_1"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="1.5708 -1.5708 0" />
+    <parent
+      link="Link1_1" />
+    <child
+      link="Link2_1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-2.268"
+      upper="2.268"
+      effort="60"
+      velocity="3.14" />
+  </joint>
+  <link
+    name="Link3_1">
+    <inertial>
+      <origin
+        xyz="5.05312670989961E-06 -0.0595925663694732 0.010569069212336"
+        rpy="0 0 0" />
+      <mass
+        value="0.289633681624654" />
+      <inertia
+        ixx="0.00063737100450158"
+        ixy="-7.05261293649751E-08"
+        ixz="-3.86643272239426E-08"
+        iyy="0.00015648388095025"
+        iyz="-0.00014461035994916"
+        izz="0.000614178164773085" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link3.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint3_1"
+    type="revolute">
+    <origin
+      xyz="0.256 0 0"
+      rpy="0 0 1.5708" />
+    <parent
+      link="Link2_1" />
+    <child
+      link="Link3_1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-2.355"
+      upper="2.355"
+      effort="30"
+      velocity="3.92" />
+  </joint>
+  <link
+    name="Link4_1">
+    <inertial>
+      <origin
+        xyz="1.15516617405898E-06 -0.0180424468598241 -0.0215394748352687"
+        rpy="0 0 0" />
+      <mass
+        value="0.239419768320061" />
+      <inertia
+        ixx="0.000285938919722783"
+        ixy="3.07101359163101E-09"
+        ixz="-2.21994118981953E-09"
+        iyy="0.000262727540304212"
+        iyz="4.4236583260078E-05"
+        izz="0.000119888082791859" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link4.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link4.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint4_1"
+    type="revolute">
+    <origin
+      xyz="0 -0.21 0"
+      rpy="1.5708 0 0" />
+    <parent
+      link="Link3_1" />
+    <child
+      link="Link4_1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.1"
+      upper="3.1"
+      effort="10"
+      velocity="3.92" />
+  </joint>
+  <link
+    name="Link5_1">
+    <inertial>
+      <origin
+        xyz="3.19794786262152E-06 -0.0593808368101458 0.00736804250989326"
+        rpy="0 0 0" />
+      <mass
+        value="0.218799761431678" />
+      <inertia
+        ixx="0.000350540363914072"
+        ixy="-3.41781619975602E-08"
+        ixz="-1.77056457224373E-08"
+        iyy="0.000104927867487581"
+        iyz="-7.82431228461971E-05"
+        izz="0.000334482418423629" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link5.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link5.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint5_1"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="-1.5708 0 0" />
+    <parent
+      link="Link4_1" />
+    <child
+      link="Link5_1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-2.233"
+      upper="2.233"
+      effort="10"
+      velocity="3.92" />
+  </joint>
+  <link
+    name="Link6_1">
+    <inertial>
+      <origin
+        xyz="0.000714234511756999 -0.000396718732824521 -0.0126723660946126"
+        rpy="0 0 0" />
+      <mass
+        value="0.0649018034311231" />
+      <inertia
+        ixx="2.02766547502765E-05"
+        ixy="-1.32505200276849E-06"
+        ixz="-2.5845091522508E-08"
+        iyy="1.87986725225022E-05"
+        iyz="3.39471452125439E-09"
+        izz="3.17885459163081E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link6.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/link6.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint6_1"
+    type="revolute">
+    <origin
+      xyz="0 -0.144 0"
+      rpy="1.5708 0 0" />
+    <parent
+      link="Link5_1" />
+    <child
+      link="Link6_1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-6.28"
+      upper="6.28"
+      effort="10"
+      velocity="3.92" />
+  </joint>
+  <!-- arm2 end ******************************************************************************************************* -->
+
+<link
+    name="l1">
+    <inertial>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.1777" />
+      <inertia
+        ixx="0.00012996"
+        ixy="-2.133E-09"
+        ixz="-2.6995E-06"
+        iyy="0.00017544"
+        iyz="1.4685E-09"
+        izz="0.00012343" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/l1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.2 0.2 0.2 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/l1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="j1"
+    type="fixed">
+    <origin
+      xyz="0 0 0"
+      rpy="0 -1.57 0" />
+    <parent
+      link="Link6_1" />
+    <child
+      link="l1" />
+    <axis
+      xyz="0 -1 0" />
+  </joint>
+  <link
+    name="l2">
+    <inertial>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.1777" />
+      <inertia
+        ixx="0.00012996"
+        ixy="-2.133E-09"
+        ixz="-2.6995E-06"
+        iyy="0.00017544"
+        iyz="1.4685E-09"
+        izz="0.00012343" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/l2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishbot_description/meshes/l2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="j2"
+    type="fixed">
+    <origin
+      xyz="0 0 0"
+      rpy="0 1.57 3.14" />
+    <parent
+      link="Link6" />
+    <child
+      link="l2" />
+    <axis
+      xyz="0 0 1" />
+  </joint>
+</robot>
