@@ -3,7 +3,7 @@ assets/
 checkpoints/
 data/
 wandb/
-
+mujoco-3.3.3/ur5_grasp_assets/realman/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
