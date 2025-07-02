@@ -5,7 +5,7 @@ import pathlib
 import time
 import sys
 import os
-
+import math
 import numpy as np
 from openpi_client import websocket_client_policy as _websocket_client_policy
 import polars as pl
@@ -134,16 +134,12 @@ class Args:
     num_steps: int = 20
     timing_file: pathlib.Path | None = None
     env: EnvMode = EnvMode.LIBERO
-    # 额外增加给前六个维度关节角度的归一化值，最大为45。
-    norm: float | None = None
     # 设置为True以连接并控制实体机械臂，默认为不运行。
     run_robot: bool = False
     # 设置为True以合并每个step中的子动作序列为单个平均动作。
     average_actions: bool = False
-    # >>> 新增代码开始 <<<
     # 设置为True以颠倒前六个关节维度的顺序。
     i: bool = False
-    # >>> 新增代码结束 <<<
 
 
 class TimingRecorder:
@@ -248,30 +244,22 @@ def main(args: Args) -> None:
 
                 for sub_action in processed_sequence:
                     # a. 处理并执行关节运动
-                    joint_angles = list(sub_action[:6])
+                    joint_angles_rad = list(sub_action[:6])
                     
-                    # >>> 新增代码开始 <<<
                     # 如果 -i 参数被设置，则颠倒前六个维度的顺序
                     if args.i:
                         console.print(f"  - [purple]Inverting:[/purple] 启用 -i 参数，颠倒前六个关节维度。")
-                        joint_angles.reverse() # In-place reverse
-                    # >>> 新增代码结束 <<<
+                        joint_angles_rad.reverse() # In-place reverse
                     
-                    # 新逻辑: 先将数据扩大15倍
-                    scaled_joint_angles = [angle * 15 for angle in joint_angles]
+                    # >>> 修改开始 <<<
+                    # 将弧度(rad)转换为度(°)
+                    final_joint_angles_deg = [np.rad2deg(angle) for angle in joint_angles_rad]
+                    # >>> 修改结束 <<<
 
-                    norm_value = 0.0
-                    if args.norm is not None:
-                        norm_value = min(args.norm, 45.0)
-                        console.print(f"  - [blue]Normalization:[/blue] 应用归一化值: {norm_value:.2f}")
-
-                    # 然后再加上 norm 值
-                    final_joint_angles = [angle + norm_value for angle in scaled_joint_angles]
-
-                    console.print(f"  - [yellow]MoveJ (目标):[/yellow] {[f'{a:.2f}' for a in final_joint_angles]}")
+                    console.print(f"  - [yellow]MoveJ (目标 - 度):[/yellow] {[f'{a:.2f}' for a in final_joint_angles_deg]}")
                     # 只有在连接了机器人时才执行
                     if args.run_robot and robot_arm:
-                        movej(robot_arm, final_joint_angles)
+                        movej(robot_arm, final_joint_angles_deg)
 
                     # b. 处理并执行夹爪控制
                     gripper_value = sub_action[6]
