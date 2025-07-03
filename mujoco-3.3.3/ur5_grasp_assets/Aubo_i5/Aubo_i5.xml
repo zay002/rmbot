@@ -2,6 +2,7 @@
     <compiler angle="radian"/>
     <size njmax="500" nconmax="100"/>
     <default>
+        <joint armature="0.1" damping="1.0" />
         <default class="visual">
             <geom group="2" type="mesh" contype="0" conaffinity="0" density="0"/>
         </default>
@@ -24,32 +25,32 @@
     <material name="Opaque(63,63,63)" specular="0.5" shininess="0.5" rgba="0.250980 0.250980 0.250980 1.0"/>
     <material name="Opaque(232,133,0)" specular="0.5" shininess="0.5" rgba="0.909804 0.521569 0.000000 1.0"/>
 
-    <mesh name="link0_0" file="meshes/visual/link0/link0_0.obj"/>
-    <mesh name="link1_0" file="meshes/visual/link1/link1_0.obj"/>
-    <mesh name="link1_1" file="meshes/visual/link1/link1_1.obj"/>
-    <mesh name="link1_2" file="meshes/visual/link1/link1_2.obj"/>
-    <mesh name="link2_0" file="meshes/visual/link2/link2_0.obj"/>
-    <mesh name="link2_1" file="meshes/visual/link2/link2_1.obj"/>
-    <mesh name="link2_2" file="meshes/visual/link2/link2_2.obj"/>
-    <mesh name="link3_0" file="meshes/visual/link3/link3_0.obj"/>
-    <mesh name="link3_1" file="meshes/visual/link3/link3_1.obj"/>
-    <mesh name="link4_0" file="meshes/visual/link4/link4_0.obj"/>
-    <mesh name="link4_1" file="meshes/visual/link4/link4_1.obj"/>
-    <mesh name="link5_0" file="meshes/visual/link5/link5_0.obj"/>
-    <mesh name="link5_1" file="meshes/visual/link5/link5_1.obj"/>
-    <mesh name="link6_0" file="meshes/visual/link6/link6_0.obj"/>
+    <mesh name="link0_0" file="../Aubo_i5/meshes/visual/link0/link0_0.obj"/>
+    <mesh name="link1_0" file="../Aubo_i5/meshes/visual/link1/link1_0.obj"/>
+    <mesh name="link1_1" file="../Aubo_i5/meshes/visual/link1/link1_1.obj"/>
+    <mesh name="link1_2" file="../Aubo_i5/meshes/visual/link1/link1_2.obj"/>
+    <mesh name="link2_0" file="../Aubo_i5/meshes/visual/link2/link2_0.obj"/>
+    <mesh name="link2_1" file="../Aubo_i5/meshes/visual/link2/link2_1.obj"/>
+    <mesh name="link2_2" file="../Aubo_i5/meshes/visual/link2/link2_2.obj"/>
+    <mesh name="link3_0" file="../Aubo_i5/meshes/visual/link3/link3_0.obj"/>
+    <mesh name="link3_1" file="../Aubo_i5/meshes/visual/link3/link3_1.obj"/>
+    <mesh name="link4_0" file="../Aubo_i5/meshes/visual/link4/link4_0.obj"/>
+    <mesh name="link4_1" file="../Aubo_i5/meshes/visual/link4/link4_1.obj"/>
+    <mesh name="link5_0" file="../Aubo_i5/meshes/visual/link5/link5_0.obj"/>
+    <mesh name="link5_1" file="../Aubo_i5/meshes/visual/link5/link5_1.obj"/>
+    <mesh name="link6_0" file="../Aubo_i5/meshes/visual/link6/link6_0.obj"/>
 
-    <mesh name="link0" file="meshes/collision/link0.STL"/>
-    <mesh name="link1" file="meshes/collision/link1.STL"/>
-    <mesh name="link2" file="meshes/collision/link2.STL"/>
-    <mesh name="link3" file="meshes/collision/link3.STL"/>
-    <mesh name="link4" file="meshes/collision/link4.STL"/>
-    <mesh name="link5" file="meshes/collision/link5.STL"/>
-    <mesh name="link6" file="meshes/collision/link6.STL"/>
+    <mesh name="link0" file="../Aubo_i5/meshes/collision/link0.STL"/>
+    <mesh name="link1" file="../Aubo_i5/meshes/collision/link1.STL"/>
+    <mesh name="link2" file="../Aubo_i5/meshes/collision/link2.STL"/>
+    <mesh name="link3" file="../Aubo_i5/meshes/collision/link3.STL"/>
+    <mesh name="link4" file="../Aubo_i5/meshes/collision/link4.STL"/>
+    <mesh name="link5" file="../Aubo_i5/meshes/collision/link5.STL"/>
+    <mesh name="link6" file="../Aubo_i5/meshes/collision/link6.STL"/>
 </asset>
 
 <worldbody>
-    <body name="base_link" pos="0 0 -0.1">
+    <body name="base_link" pos="0.8 0.6 0.745">
         <inertial pos="5.28033e-09 0.00159669 0.0165705" quat="0.495398 0.50456 -0.50456 0.495398" mass="1.43822" diaginertia="0.0055319 0.003103 0.0028571"/>
         <geom mesh="link0_0" pos="0 0 0" quat="180 180 0 1" material="Opaque(63,63,63)" class="visual"/>
         <geom type="mesh" rgba="1 1 1 1" mesh="link0" class="collision"/>
@@ -95,9 +96,14 @@
                                 <joint name="wrist3_joint" pos="0 0 0" axis="0 0 1" limited="true" range="-6.28319 6.28319" damping="2.5" frictionloss="3.0"/>
                                 <geom mesh="link6_0" pos="0 0 0" quat="180 180 0 1" material="Opaque(63,63,63)" class="visual"/>
                                 <geom type="mesh" pos="0 0 0" mesh="link6" class="collision"/>
-                                <body name="attachment" pos="0 0 0">
-                                    <site name="attachment_site" size="0.01" rgba="1 0 0 1"/>
-                                    <site name="end_force_sensor_site" type="cylinder" size="0.036 0.001" pos="0 0 0.001" rgba="1 1 0 1"/>
+
+                                <body name="flange" pos="0 0 0" quat="1 0 0 0">
+                                    <site name="tcp" pos="0 0 0" size="0.01" rgba="0 1 0 1"/>
+                                    <site name="end_force_sensor_site" type="cylinder" size="0.036 0.001" pos="0 0 0.001" rgba="1 1 0 0.3"/>
+                                    <body name="arm_camera" pos="0 -0.02 0" quat="1 0 0 0">
+                                        <camera name="flange_cam" mode="fixed" pos="0 0 0" xyaxes="1 0 0 0 -1 0"/>
+                                        <geom type="box" size="0.01 0.01 0.01" rgba="1 0 0 0.5" contype="0" conaffinity="0"/>
+                                    </body>
                                 </body>
                             </body>
                         </body>
