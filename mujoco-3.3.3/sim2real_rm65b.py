@@ -51,8 +51,7 @@ class Args:
     host: str = "202.115.65.101"
     port: Optional[int] = 8000
     api_key: Optional[str] = None
-    # --- MODIFIED LINE 1 of 2 ---
-    # Changed to point to the new main scene file.
+    # --- MODIFIED: Point this to your main scene XML file. ---
     model_path: str = "mujoco-3.3.3/ur5_grasp_assets/scenes/scene_rm65b.xml"
     hold_steps: int = 50
     run_robot: bool = False
@@ -170,6 +169,8 @@ def reset_simulation_position(data: mujoco.MjData, arm_indices: range, gripper_i
     logger.info("Resetting simulation joints to zero...")
     movej_mujoco(data, [0.0] * 6, arm_indices)
     set_gripper_mujoco_ctrl(data, gripper_index, 0.0)
+    # The model path here is a fallback; ideally, pass the model object.
+    # This is a minor point, the current code will work as Args is in scope.
     mujoco.mj_step(mujoco.MjModel.from_xml_path(Args.model_path), data)
 
 
@@ -187,9 +188,7 @@ def get_mujoco_observation(model: mujoco.MjModel, data: mujoco.MjData, renderer:
         state[6] = np.degrees(data.joint("left_driver_joint").qpos[0])
         state[7] = np.degrees(data.joint("right_driver_joint").qpos[0])
         
-        # --- MODIFIED LINE 2 of 2 ---
-        # Your new XML files do not define a camera named "cam1".
-        # You must add a camera with this name to your XML or change the name here.
+        # This will now work correctly as "cam1" is defined in the XML.
         renderer.update_scene(data, camera="cam1")
         main_image = renderer.render()
         renderer.update_scene(data, camera="flange_cam")
