@@ -28,7 +28,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # 加载模型
-model = mujoco.MjModel.from_xml_path("ur5_grasp_assets/scenes/scene_rm65b.xml")
+model = mujoco.MjModel.from_xml_path("mujoco-3.3.3/ur5_grasp_assets/scenes/scene_aubo.xml")
 data = mujoco.MjData(model)
 
 # 获取所有驱动关节信息

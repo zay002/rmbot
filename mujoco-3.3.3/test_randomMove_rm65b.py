@@ -14,7 +14,7 @@ SMOOTHNESS = 0.05
 # 加载我们最终配置好的场景文件
 try:
     # 注意：这里我们加载的是包含mocap体的场景文件
-    model = mujoco.MjModel.from_xml_path("ur5_grasp_assets/scenes/scene_rm65b.xml")
+    model = mujoco.MjModel.from_xml_path("mujoco-3.3.3/ur5_grasp_assets/scenes/scene_rm65b.xml")
     data = mujoco.MjData(model)
 except Exception as e:
     print(f"模型加载失败: {e}")
