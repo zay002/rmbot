@@ -11,14 +11,12 @@ import os
 from PIL import Image
 
 # scipy is the most common and reliable library for rotation transformations
-# If not already installed, run: pip install scipy
 from scipy.spatial.transform import Rotation
 
 # --- Assume openpi_client is installed ---
-# You can install it via: pip install openpi-client
 from openpi_client import websocket_client_policy as _websocket_client_policy
 
-# --- Configuration and Argument Parsing (from main.py) ---
+# --- Configuration and Argument Parsing ---
 
 class EnvMode(enum.Enum):
     """Supported environments."""
@@ -30,14 +28,10 @@ class EnvMode(enum.Enum):
 @dataclasses.dataclass
 class Args:
     """Command line arguments for the simulation."""
-    # --- Server Connection Parameters ---
     host: str = "202.115.65.101"
     port: int | None = 8000
     api_key: str | None = None
-
-    # --- Simulation and Control Parameters ---
-    # MODIFIED: Point this to your main scene XML file.
-    model_path: str = "path/to/your/scene_rm65b.xml"
+    model_path: str = "mujoco-3.3.3/ur5_grasp_assets/scenes/scene_rm65b.xml"
     hold_steps: int = 50
     env: EnvMode = EnvMode.LIBERO
     norm: float | None = None
@@ -67,13 +61,39 @@ def movej_mujoco(data: mujoco.MjData, target_angles: list[float], arm_actuator_i
     logging.info(f"  - [Sim] MoveJ Sent: {[f'{a:.2f}' for a in target_angles]}")
 
 def control_gripper_mujoco(data: mujoco.MjData, gripper_actuator_index: int, gripper_range: np.ndarray, amplitude: float):
-    """Controls the gripper in MuJoCo by mapping a 0-100 amplitude value."""
+    """Controls the gripper in MuJoCo by mapping a 0-255 amplitude value."""
     min_ctrl, max_ctrl = gripper_range
-    ctrl_value = min_ctrl + (amplitude / 100.0) * (max_ctrl - min_ctrl)
+    ctrl_value = min_ctrl + (amplitude / 255.0) * (max_ctrl - min_ctrl)
     data.ctrl[gripper_actuator_index] = ctrl_value
     logging.info(f"  - [Sim] Gripper Sent: Amplitude {amplitude:.2f} -> Ctrl Value {ctrl_value:.3f}")
 
-# --- Observation Function ---
+def update_mocap_pose(data: mujoco.MjData, eef_body_id: int, mocap_id: int):
+    """Reads the end-effector's pose and applies it to the mocap body."""
+    eef_pos = data.body(eef_body_id).xpos
+    eef_quat = data.body(eef_body_id).xquat
+    data.mocap_pos[0][:] = eef_pos
+    data.mocap_quat[0][:] = eef_quat
+
+
+# --- Observation Functions ---
+
+def get_libero_state_vector(data: mujoco.MjData, tcp_body_name: str, left_joint_name: str, right_joint_name: str) -> np.ndarray:
+    """Helper function to extract the state vector used by LIBERO."""
+    state = np.zeros(8, dtype=np.float64)
+    flange_pos = data.body(tcp_body_name).xpos
+    flange_quat = data.body(tcp_body_name).xquat
+    
+    rotation = Rotation.from_quat([flange_quat[1], flange_quat[2], flange_quat[3], flange_quat[0]])
+    euler_angles_rad = rotation.as_euler('zyx', degrees=False)
+    
+    state[0:3] = flange_pos
+    state[3:6] = euler_angles_rad
+
+    right_pos = np.degrees(data.joint(right_joint_name).qpos[0])
+    left_pos = np.degrees(data.joint(left_joint_name).qpos[0])
+    state[6] = left_pos
+    state[7] = right_pos
+    return state
 
 def get_mujoco_observation(
     model: mujoco.MjModel, 
@@ -82,56 +102,99 @@ def get_mujoco_observation(
     tcp_body_name: str = "flange", 
     left_joint_name: str = "left_driver_joint",
     right_joint_name: str = "right_driver_joint",
-    # MODIFIED: Changed back to "cam1" to use the fixed camera now defined in your XML.
     main_camera_name: str = "cam1", 
     wrist_camera_name: str = "flange_cam" 
 ) -> dict | None:
-    """
-    Reads observation data from the MuJoCo simulation environment.
-    The state vector's first 6 dimensions are the end-effector's pose: [x, y, z, rz, ry, rx] (in radians).
-    """
+    """Reads observation data from the MuJoCo simulation environment for LIBERO."""
     try:
-        # === Part 1: State Vector Calculation ===
-        state = np.zeros(8, dtype=np.float64)
+        libero_state = get_libero_state_vector(data, tcp_body_name, left_joint_name, right_joint_name)
 
-        flange_pos = data.body(tcp_body_name).xpos
-        flange_quat = data.body(tcp_body_name).xquat
-        
-        rotation = Rotation.from_quat(flange_quat)
-        euler_angles_rad = rotation.as_euler('zyx', degrees=False)
-        
-        state[0:3] = flange_pos
-        state[3:6] = euler_angles_rad
-
-        right_pos = np.degrees(data.joint(right_joint_name).qpos[0])
-        left_pos = np.degrees(data.joint(left_joint_name).qpos[0])
-        state[6] = left_pos
-        state[7] = right_pos
-
-        # === Part 2: Image Rendering ===
         renderer.update_scene(data, camera=main_camera_name)
         main_image = renderer.render()
         renderer.update_scene(data, camera=wrist_camera_name)
         wrist_image = renderer.render()
         
-        # === Part 3: Assemble Observation Dictionary ===
         observation = {
-            "observation/state": state,
+            "observation/state": libero_state,
             "observation/image": main_image,
             "observation/wrist_image": wrist_image,
-            "prompt": "pick up everything you see"
+            "prompt": "move slowly and try your best to pick up something near you"
         }
         return observation
-
     except KeyError as e:
-        logging.error(f"Error: A specified name was not found in the model: {e}. Check camera, body, or joint names in your XML files.")
+        logging.error(f"Error: A specified name was not found in the model: {e}.")
         return None
     except Exception as e:
         logging.error(f"An unexpected error occurred in get_mujoco_observation: {e}")
         return None
 
+# MODIFIED: New observation function specifically for ALOHA environment
+def get_aloha_observation(
+    model: mujoco.MjModel, 
+    data: mujoco.MjData,
+    renderer: mujoco.Renderer,
+    tcp_body_name: str = "flange", 
+    left_joint_name: str = "left_driver_joint",
+    right_joint_name: str = "right_driver_joint",
+    cam_high_name: str = "cam1",
+    cam_low_name: str = "cam2",
+    cam_wrist_name: str = "flange_cam"
+) -> dict | None:
+    """Generates an observation dictionary in the ALOHA format using MuJoCo data."""
+    try:
+        # 1. State generation
+        libero_state = get_libero_state_vector(data, tcp_body_name, left_joint_name, right_joint_name)
+        # Per requirements: first 7 dims are 0, last 7 are from libero state
+        # We take the first 7 elements of the 8-dim libero state
+        aloha_state = np.concatenate([np.zeros(7), libero_state[:7]])
+
+        # 2. Image generation
+        # Render images from specified cameras
+        renderer.update_scene(data, camera=cam_high_name)
+        cam_high_img = renderer.render().transpose(2, 0, 1) # HWC -> CHW
+
+        renderer.update_scene(data, camera=cam_low_name)
+        cam_low_img = renderer.render().transpose(2, 0, 1) # HWC -> CHW
+
+        renderer.update_scene(data, camera=cam_wrist_name)
+        cam_wrist_img = renderer.render().transpose(2, 0, 1) # HWC -> CHW
+
+        # Create a black image for the left wrist
+        black_img = np.zeros((3, renderer.height, renderer.width), dtype=np.uint8)
+
+        # 3. Assemble final observation dictionary
+        observation = {
+            "state": aloha_state,
+            "images": {
+                "cam_high": cam_high_img,
+                "cam_low": cam_low_img,
+                "cam_left_wrist": black_img,
+                "cam_right_wrist": cam_wrist_img,
+            },
+            "prompt": "do something",
+        }
+        return observation
+    except KeyError as e:
+        logging.error(f"Error: A specified camera name was not found in the model: {e}.")
+        return None
+    except Exception as e:
+        logging.error(f"An unexpected error occurred in get_aloha_observation: {e}")
+        return None
+
+
+def _random_observation_droid() -> dict:
+    """Generates a random observation dictionary in the DROID format."""
+    return {
+        "observation/exterior_image_1_left": np.random.randint(256, size=(224, 224, 3), dtype=np.uint8),
+        "observation/wrist_image_left": np.random.randint(256, size=(224, 224, 3), dtype=np.uint8),
+        "observation/joint_position": np.random.rand(7),
+        "observation/gripper_position": np.random.rand(1),
+        "prompt": "do something",
+    }
+
+
 def main(args: Args) -> None:
-    """Main function to run the MuJoCo simulation controlled by the policy server."""
+    """Main function to run the simulation controlled by the policy server."""
     # --- 1. Load MuJoCo Model and Components ---
     try:
         model = mujoco.MjModel.from_xml_path(args.model_path)
@@ -144,17 +207,39 @@ def main(args: Args) -> None:
         logging.error(f"Failed to load model or create renderer: {e}")
         return
         
+    ARM_ACTUATOR_INDICES = range(6)
+    GRIPPER_ACTUATOR_INDEX = 6
+
+    limit = 3.1415
+    for i in ARM_ACTUATOR_INDICES:
+        if model.actuator_ctrllimited[i]:
+            model.actuator_ctrlrange[i][0] = -limit
+            model.actuator_ctrlrange[i][1] = limit
+    logging.info(f"Arm joint limits programmatically set to [{-limit}, {limit}].")
+
     actuator_info = get_actuator_info(model)
     if model.nu < 7:
         logging.error(f"Model must have at least 7 actuators (6 for arm, 1 for gripper), but found {model.nu}.")
         return
         
-    ARM_ACTUATOR_INDICES = range(6)
-    GRIPPER_ACTUATOR_INDEX = 6
     gripper_range = actuator_info[GRIPPER_ACTUATOR_INDEX]["range"]
 
-    # --- 2. Define the Observation Function ---
-    obs_fn = lambda: get_mujoco_observation(model, data, renderer)
+    try:
+        eef_body_id = model.body('flange').id
+        mocap_id = model.body('gripper_mocap').id
+    except KeyError as e:
+        logging.error(f"Mocap setup error: XML is missing a required body ('flange' or 'gripper_mocap'). Details: {e}")
+        return
+
+    # --- 2. Define the Observation Function based on Environment ---
+    # MODIFIED: Select observation function based on the --env argument
+    logging.info(f"Setting up observation function for environment: {args.env.value}")
+    if args.env in [EnvMode.ALOHA, EnvMode.ALOHA_SIM]:
+        obs_fn = lambda: get_aloha_observation(model, data, renderer)
+    elif args.env == EnvMode.DROID:
+        obs_fn = _random_observation_droid # Droid uses dummy data for now
+    else: # Default to LIBERO which uses the MuJoCo simulation
+        obs_fn = lambda: get_mujoco_observation(model, data, renderer)
     
     # --- 3. Connect to Policy Server ---
     try:
@@ -166,10 +251,8 @@ def main(args: Args) -> None:
 
     # --- 4. Warm up the server ---
     logging.info("Warming up the server...")
-
-    # Before getting the first observation, run one simulation step to initialize all physics states
+    update_mocap_pose(data, eef_body_id, mocap_id)
     mujoco.mj_step(model, data)
-
     warmup_obs = obs_fn()
     if warmup_obs is None:
         logging.error("Failed to get initial observation during warmup. Exiting.")
@@ -177,19 +260,9 @@ def main(args: Args) -> None:
     for _ in range(2):
         policy.infer(warmup_obs)
         
-    # --- 5. Setup for Image Saving ---
-    IMAGE_SAVE_DIR = "saved_images"
-    os.makedirs(IMAGE_SAVE_DIR, exist_ok=True)
-    action_counter = 0
-    main_cam_saved_count = 0
-    wrist_cam_saved_count = 0
-    IMAGE_SAVE_LIMIT = 5
-    SAVE_INTERVAL = 10
-
-    # --- 6. Main Simulation Loop ---
+    # --- 5. Main Simulation Loop ---
     with mujoco.viewer.launch_passive(model, data) as viewer:
         logging.info("\nSimulation started. Receiving actions from server to control the robot.")
-        logging.info(f"Images will be saved every {SAVE_INTERVAL} actions to '{IMAGE_SAVE_DIR}/' (limit: {IMAGE_SAVE_LIMIT} per camera).")
         logging.info("Press ESC to quit.")
         
         while viewer.is_running():
@@ -204,62 +277,50 @@ def main(args: Args) -> None:
             response = policy.infer(current_obs)
             action_sequence = response.get('actions')
             
-            # c. Check if the received action is valid
-            if not isinstance(action_sequence, (list, np.ndarray)) or len(action_sequence) == 0 or not all(len(sub) == 7 for sub in action_sequence):
-                logging.warning(f"Received invalid or empty 'actions', skipping: {action_sequence}")
+            # MODIFIED: c. Check if the received action is valid based on env
+            is_action_valid = True
+            if not isinstance(action_sequence, (list, np.ndarray)) or len(action_sequence) == 0:
+                is_action_valid = False
+            else:
+                if args.env in [EnvMode.ALOHA, EnvMode.ALOHA_SIM]:
+                    if not all(len(sub) == 14 for sub in action_sequence):
+                        is_action_valid = False
+                else: # LIBERO, DROID
+                    if not all(len(sub) == 7 for sub in action_sequence):
+                        is_action_valid = False
+            
+            if not is_action_valid:
+                logging.warning(f"Received invalid or empty 'actions' for env '{args.env.value}', skipping: {action_sequence}")
+                update_mocap_pose(data, eef_body_id, mocap_id)
                 mujoco.mj_step(model, data)
                 viewer.sync()
                 continue
                 
-            # d. Increment action counter and save images if interval is reached
-            action_counter += 1
-            if action_counter >= SAVE_INTERVAL:
-                if main_cam_saved_count < IMAGE_SAVE_LIMIT:
-                    main_img_array = current_obs["observation/image"]
-                    img = Image.fromarray(main_img_array)
-                    filename = os.path.join(IMAGE_SAVE_DIR, f"main_camera_{main_cam_saved_count + 1}.png")
-                    img.save(filename)
-                    logging.info(f"Saved main camera image: {filename}")
-                    main_cam_saved_count += 1
-                
-                if wrist_cam_saved_count < IMAGE_SAVE_LIMIT:
-                    wrist_img_array = current_obs["observation/wrist_image"]
-                    img = Image.fromarray(wrist_img_array)
-                    filename = os.path.join(IMAGE_SAVE_DIR, f"wrist_camera_{wrist_cam_saved_count + 1}.png")
-                    img.save(filename)
-                    logging.info(f"Saved wrist camera image: {filename}")
-                    wrist_cam_saved_count += 1
-                
-                action_counter = 0
-
-            # e. Process action sequence
-            processed_sequence = action_sequence
-            if args.average_actions:
-                logging.info(f"Averaging {len(action_sequence)} sub-actions into a single action.")
-                averaged_action = np.mean(action_sequence, axis=0)
-                processed_sequence = [averaged_action]
-
-            # f. Execute the action sequence in the simulation
-            for sub_action in processed_sequence:
+            # d. Execute the action sequence in the simulation
+            for sub_action in action_sequence:
                 if not viewer.is_running(): break
                 
-                joint_angles = list(sub_action[:6])
-                scaled_joint_angles = [angle * 15 for angle in joint_angles]
+                # MODIFIED: Select the correct part of the action vector based on env
+                if args.env in [EnvMode.ALOHA, EnvMode.ALOHA_SIM]:
+                    # For ALOHA, use the last 7 dimensions of the 14-dim action
+                    action_to_execute = sub_action[7:]
+                else:
+                    # For other envs, use the full 7-dim action
+                    action_to_execute = sub_action
+
+                joint_angles = list(action_to_execute[:6])
+                gripper_value = action_to_execute[6]
                 
-                norm_value = 0.0
-                if args.norm is not None:
-                    norm_value = min(args.norm, 45.0)
-                
-                final_joint_angles = [angle + norm_value for angle in scaled_joint_angles]
+                final_joint_angles = joint_angles
                 movej_mujoco(data, final_joint_angles, ARM_ACTUATOR_INDICES)
 
-                gripper_value = sub_action[6]
-                gripper_amplitude = max(0, min(100, abs(gripper_value)))
+                gripper_amplitude = max(0, min(255, abs(gripper_value)))
                 control_gripper_mujoco(data, GRIPPER_ACTUATOR_INDEX, gripper_range, gripper_amplitude)
 
                 # Hold the control signal for a number of simulation steps
                 for _ in range(args.hold_steps):
                     if not viewer.is_running(): break
+                    update_mocap_pose(data, eef_body_id, mocap_id)
                     mujoco.mj_step(model, data)
                     viewer.sync()
             
