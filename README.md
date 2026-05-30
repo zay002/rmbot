@@ -60,17 +60,3 @@ uv run python projects/rm65b/simulation/scripts/sim_to_real_client.py --host loc
 ```
 
 注意：仓库里不会再给真实机器人地址写默认值，避免误连设备。
-
-## 推荐仓库信息
-
-建议把 GitHub 仓库名改为：
-
-```text
-rm-openpi-mujoco
-```
-
-建议 About 描述写成：
-
-```text
-RM65B 机械臂的 MuJoCo 仿真与 OpenPI 策略接入项目。
-```

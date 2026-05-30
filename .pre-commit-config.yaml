@@ -1,4 +1,4 @@
-exclude: third_party/
+exclude: ^(third_party/|projects/rm65b/simulation/scripts/)
 
 repos:
   - repo: https://github.com/astral-sh/uv-pre-commit
