@@ -1,6 +1,8 @@
 import dataclasses
 import enum
 import logging
+import pathlib
+import sys
 import time
 from typing import Optional
 
@@ -10,6 +12,10 @@ import numpy as np
 from openpi_client import websocket_client_policy as _websocket_client_policy
 from scipy.spatial.transform import Rotation
 import tyro
+
+_REALMAN_API_PATH = pathlib.Path(__file__).resolve().parents[4] / "third_party" / "realman_rm_api2" / "Python"
+if _REALMAN_API_PATH.exists():
+    sys.path.append(str(_REALMAN_API_PATH))
 
 try:
     from Robotic_Arm.rm_robot_interface import *

@@ -9,6 +9,7 @@
 - `src/openpi/`：同步后的 OpenPI 核心代码，包括模型、策略、数据处理和训练逻辑。
 - `packages/openpi-client/`：轻量级 websocket 客户端，用于连接外部策略推理服务。
 - `projects/rm65b/`：RM65B 机械臂项目目录，包含 MuJoCo 场景、最小资产和运行脚本。
+- `third_party/realman_rm_api2/`：RealMan 官方 RM_API2 的 Python 接口子集，供真实机械臂二次开发参考。
 - `pyproject.toml` / `uv.lock`：统一依赖管理，MuJoCo 使用 Python 包 `mujoco==3.9.0`，不再提交旧版二进制 SDK 目录。
 
 ## 已经清理掉的内容
@@ -27,6 +28,7 @@ projects/rm65b/simulation/assets/   RM65B MuJoCo 场景和必要网格资产
 projects/rm65b/simulation/scripts/  RM65B 仿真、策略客户端、sim-to-real 脚本
 docs/                               保留的 OpenPI 通用文档
 scripts/                            OpenPI 训练和工具脚本
+third_party/realman_rm_api2/        RealMan RM_API2 Python SDK 子集和来源说明
 ```
 
 ## 环境安装
@@ -37,7 +39,19 @@ scripts/                            OpenPI 训练和工具脚本
 uv sync
 ```
 
-如果要控制真实 RM 机械臂，请单独安装 RealMan 官方 `Robotic_Arm` Python 包。这个仓库不再内置机器人 SDK，避免把二进制文件和本地示例工程混进项目代码。
+如果要控制真实 RM 机械臂，可以优先使用仓库内保留的 RealMan Python SDK 子集：
+
+```text
+third_party/realman_rm_api2/Python/Robotic_Arm/
+```
+
+`sim_to_real_client.py` 会在没有通过 pip 安装 `Robotic_Arm` 时，自动尝试从这个目录导入。需要完整官方示例、C/C++/C# 工程或更新说明时，看这里：
+
+```text
+third_party/realman_rm_api2/SOURCE.md
+third_party/realman_rm_api2/README.upstream.md
+https://github.com/RealManRobot/RM_API2
+```
 
 ## RM65B 仿真
 
